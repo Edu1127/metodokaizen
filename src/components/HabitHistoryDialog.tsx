@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { History } from "lucide-react";
-import { parseISO, format } from "date-fns";
+import { parseISO, format, isAfter, isBefore, startOfDay, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface HabitHistoryDialogProps {
@@ -23,13 +23,29 @@ export const HabitHistoryDialog = ({ habit }: HabitHistoryDialogProps) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const totalDays = habit.completionHistory.length;
+  const today = startOfDay(new Date());
+  const habitStartDate = startOfDay(parseISO(habit.startDate));
 
   // Convert completion history to Date objects
-  const completedDates = habit.completionHistory.map(dateStr => parseISO(dateStr));
+  const completedDates = habit.completionHistory.map(dateStr => startOfDay(parseISO(dateStr)));
+
+  // Get all days from habit start to today
+  const allDaysFromStart = eachDayOfInterval({
+    start: habitStartDate,
+    end: today
+  });
+
+  // Find missed days (past days that were not completed)
+  const missedDates = allDaysFromStart.filter(day => 
+    isBefore(day, today) && 
+    !completedDates.some(completedDate => completedDate.getTime() === day.getTime())
+  );
 
   // Custom modifiers for the calendar
   const modifiers = {
     completed: completedDates,
+    missed: missedDates,
+    future: (date: Date) => isAfter(startOfDay(date), today),
   };
 
   const modifiersStyles = {
@@ -37,6 +53,15 @@ export const HabitHistoryDialog = ({ habit }: HabitHistoryDialogProps) => {
       backgroundColor: "hsl(var(--growth))",
       color: "white",
       fontWeight: "bold",
+    },
+    missed: {
+      backgroundColor: "hsl(var(--destructive))",
+      color: "white",
+      opacity: 0.7,
+    },
+    future: {
+      color: "hsl(var(--muted-foreground))",
+      opacity: 0.4,
     },
   };
 
