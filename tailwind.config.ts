@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        growth: {
+          DEFAULT: "hsl(var(--growth))",
+          light: "hsl(var(--growth-light))",
+        },
+        calm: "hsl(var(--calm))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
