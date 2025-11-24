@@ -7,6 +7,7 @@ export interface Habit {
   currentWeek: number;
   completedToday: boolean;
   streak: number;
+  completionHistory: string[]; // Array of ISO date strings
 }
 
 export interface HabitWithProgress extends Habit {
