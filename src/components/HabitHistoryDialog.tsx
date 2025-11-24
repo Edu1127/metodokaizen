@@ -9,8 +9,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { History } from "lucide-react";
-import { parseISO, format, isSameDay } from "date-fns";
+import { parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface HabitHistoryDialogProps {
@@ -19,19 +20,25 @@ interface HabitHistoryDialogProps {
 
 export const HabitHistoryDialog = ({ habit }: HabitHistoryDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const totalDays = habit.completionHistory.length;
 
-  // Group completions by month for display
-  const completionsByMonth = habit.completionHistory.reduce((acc, dateStr) => {
-    const date = parseISO(dateStr);
-    const monthKey = format(date, "MMMM yyyy", { locale: ptBR });
-    if (!acc[monthKey]) {
-      acc[monthKey] = [];
-    }
-    acc[monthKey].push(dateStr);
-    return acc;
-  }, {} as Record<string, string[]>);
+  // Convert completion history to Date objects
+  const completedDates = habit.completionHistory.map(dateStr => parseISO(dateStr));
+
+  // Custom modifiers for the calendar
+  const modifiers = {
+    completed: completedDates,
+  };
+
+  const modifiersStyles = {
+    completed: {
+      backgroundColor: "hsl(var(--growth))",
+      color: "white",
+      fontWeight: "bold",
+    },
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -64,61 +71,30 @@ export const HabitHistoryDialog = ({ habit }: HabitHistoryDialogProps) => {
             </div>
           </div>
 
-          {/* Timeline by month */}
-          {totalDays > 0 ? (
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-foreground">
-                Histórico de Conclusões
-              </h4>
-              <div className="space-y-4">
-                {Object.entries(completionsByMonth)
-                  .sort(([a], [b]) => {
-                    const dateA = parseISO(completionsByMonth[a][0]);
-                    const dateB = parseISO(completionsByMonth[b][0]);
-                    return dateB.getTime() - dateA.getTime();
-                  })
-                  .map(([month, dates]) => (
-                    <div key={month} className="space-y-2">
-                      <h5 className="text-sm font-medium text-muted-foreground capitalize">
-                        {month}
-                      </h5>
-                      <div className="grid grid-cols-7 gap-2">
-                        {dates
-                          .sort()
-                          .reverse()
-                          .map((dateStr) => {
-                            const date = parseISO(dateStr);
-                            const isToday = isSameDay(date, new Date());
-                            return (
-                              <div
-                                key={dateStr}
-                                className={`aspect-square rounded-md flex flex-col items-center justify-center text-xs ${
-                                  isToday
-                                    ? "bg-growth text-white font-bold ring-2 ring-growth ring-offset-2"
-                                    : "bg-growth-light text-growth"
-                                }`}
-                              >
-                                <span className="text-[10px] opacity-70">
-                                  {format(date, "EEE", { locale: ptBR })}
-                                </span>
-                                <span className="font-semibold">
-                                  {format(date, "dd")}
-                                </span>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  ))}
+          {/* Calendar */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-sm text-foreground">
+              Calendário de Conclusões
+            </h4>
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                month={currentMonth}
+                onMonthChange={setCurrentMonth}
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+                locale={ptBR}
+                className="rounded-md border"
+              />
+            </div>
+            {totalDays === 0 && (
+              <div className="text-center py-4">
+                <p className="text-muted-foreground text-sm">
+                  Nenhum dia concluído ainda. Comece hoje!
+                </p>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Nenhum dia concluído ainda. Comece hoje!
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
