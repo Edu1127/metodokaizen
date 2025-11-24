@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Trash2, TrendingUp } from "lucide-react";
 import { differenceInWeeks, startOfDay } from "date-fns";
+import { HabitHistoryDialog } from "@/components/HabitHistoryDialog";
 
 interface HabitCardProps {
   habit: HabitWithProgress;
@@ -55,23 +56,29 @@ export const HabitCard = ({ habit, onToggle, onDelete }: HabitCardProps) => {
           </span>
         </div>
 
-        <Button
-          onClick={() => onToggle(habit.id)}
-          className={`w-full ${
-            habit.completedToday
-              ? "bg-growth hover:bg-growth/90"
-              : "bg-secondary hover:bg-secondary/80"
-          }`}
-        >
-          {habit.completedToday ? (
-            <>
-              <Check className="w-4 h-4 mr-2" />
-              Concluído hoje!
-            </>
-          ) : (
-            "Marcar como concluído"
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => onToggle(habit.id)}
+            className={`flex-1 ${
+              habit.completedToday
+                ? "bg-growth hover:bg-growth/90"
+                : "bg-secondary hover:bg-secondary/80"
+            }`}
+          >
+            {habit.completedToday ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Concluído hoje!
+              </>
+            ) : (
+              "Marcar como concluído"
+            )}
+          </Button>
+        </div>
+
+        <div className="mt-3">
+          <HabitHistoryDialog habit={habit} />
+        </div>
       </div>
     </Card>
   );
