@@ -1,13 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { HabitWithProgress } from "@/types/habit";
 import { calculateHabitPoints } from "@/hooks/useGamification";
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface HabitPointsDisplayProps {
   habits: HabitWithProgress[];
 }
 
 export const HabitPointsDisplay = ({ habits }: HabitPointsDisplayProps) => {
+  const [showAll, setShowAll] = useState(false);
+  const displayedHabits = showAll ? habits : habits.slice(0, 3);
+  const hasMore = habits.length > 3;
+
   return (
     <Card>
       <CardHeader>
@@ -15,7 +22,7 @@ export const HabitPointsDisplay = ({ habits }: HabitPointsDisplayProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {habits.map((habit) => {
+          {displayedHabits.map((habit) => {
             const points = calculateHabitPoints(habit.streak);
             const streakMultiplier = (points / 20).toFixed(1);
 
@@ -47,6 +54,26 @@ export const HabitPointsDisplay = ({ habits }: HabitPointsDisplayProps) => {
             <div className="text-center p-4 text-gray-500">
               <p className="text-sm">Nenhum hábito criado ainda</p>
             </div>
+          )}
+
+          {hasMore && (
+            <Button
+              variant="ghost"
+              className="w-full mt-2"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? (
+                <>
+                  <ChevronUp className="mr-2 h-4 w-4" />
+                  Ver menos
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Ver mais ({habits.length - 3})
+                </>
+              )}
+            </Button>
           )}
 
           {habits.length > 0 && (
