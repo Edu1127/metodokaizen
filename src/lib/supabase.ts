@@ -3,17 +3,21 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+const projectRef = supabaseUrl ? supabaseUrl.split('.')[0].split('//')[1] : ''
+const storageKey = `sb-${projectRef}-auth-token`
+
 console.log('🔧 Supabase Config:', {
   url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
-  key: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING'
+  key: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MISSING',
+  projectRef,
+  storageKey
 })
 
 let supabase: any
-let supabasePersistent: any
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase environment variables. Please check your .env.local file.')
-  // Create dummy clients to prevent crashes
+  // Create a dummy client to prevent crashes
   const dummyClient = {
     auth: {
       getSession: () => {
@@ -27,28 +31,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
     }
   }
   supabase = dummyClient
-  supabasePersistent = dummyClient
 } else {
-  console.log('✅ Creating Supabase clients')
+  console.log('✅ Creating Supabase client with persistence')
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-      autoRefreshToken: false,
+      autoRefreshToken: true,
       persistSession: false,
       detectSessionInUrl: false,
-      storage: undefined,
-      flowType: 'implicit'
     }
   })
-  supabasePersistent = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-      storage: window.localStorage,
-      flowType: 'implicit'
-    }
-  })
-  console.log('✅ Supabase clients created successfully')
+  console.log('✅ Supabase client created successfully with persistence')
 }
 
-export { supabase, supabasePersistent }
+export { supabase, storageKey }
