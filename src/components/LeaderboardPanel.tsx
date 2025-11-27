@@ -326,42 +326,41 @@ export const LeaderboardPanel = () => {
               return (
                 <div
                   key={user.id}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  className={`flex items-center gap-2 p-2.5 pr-3 rounded-lg transition-colors ${
                     isCurrentUser
                       ? 'bg-amber-50 border-2 border-amber-300'
                       : 'bg-gray-50 hover:bg-gray-100'
                   }`}
                 >
                   {/* Posição e Medalha */}
-                  <div className="flex items-center justify-center w-8 h-8 font-bold text-sm">
-                    {getMedalIcon(index) || <span className="text-gray-600">#{index + 1}</span>}
+                  <div className="flex items-center justify-center w-6 font-bold text-sm flex-shrink-0">
+                    {getMedalIcon(index) || <span className="text-gray-600 text-xs">#{index + 1}</span>}
                   </div>
 
                   {/* Avatar */}
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-sm">
+                  <Avatar className="w-9 h-9 flex-shrink-0">
+                    <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs">
                       {getInitials(user.full_name, user.email)}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Informações do Usuário */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 overflow-hidden">
                     <p className={`font-semibold text-sm truncate ${isCurrentUser ? 'text-amber-900' : 'text-gray-900'}`}>
                       {user.full_name || user.email.split('@')[0]}
-                      {isCurrentUser && <span className="ml-2 text-xs">(Você)</span>}
+                      {isCurrentUser && <span className="ml-1 text-xs">(Você)</span>}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs">{title.icon}</span>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-xs flex-shrink-0">{title.icon}</span>
                       <span className="text-xs text-gray-600 truncate">{title.name}</span>
                     </div>
                   </div>
 
                   {/* Pontos */}
-                  <div className="text-right">
-                    <Badge variant={isCurrentUser ? "default" : "secondary"} className="font-bold">
-                      {user.total_points}
+                  <div className="flex flex-col items-end flex-shrink-0 ml-2">
+                    <Badge variant={isCurrentUser ? "default" : "secondary"} className="font-bold text-xs px-2 py-0.5 whitespace-nowrap">
+                      {user.total_points.toLocaleString('pt-BR')} pts
                     </Badge>
-                    <p className="text-xs text-gray-500 mt-1">pontos</p>
                   </div>
                 </div>
               );
