@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuth()
@@ -20,7 +22,7 @@ export default function Login() {
     setError('')
     setLoading(true)
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(email, password, rememberMe)
 
     if (error) {
       setError(error)
@@ -68,6 +70,16 @@ export default function Login() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              />
+              <Label htmlFor="remember" className="text-sm">
+                Manter conectado
+              </Label>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>

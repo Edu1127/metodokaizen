@@ -9,11 +9,12 @@ console.log('🔧 Supabase Config:', {
 })
 
 let supabase: any
+let supabasePersistent: any
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase environment variables. Please check your .env.local file.')
-  // Create a dummy client to prevent crashes
-  supabase = {
+  // Create dummy clients to prevent crashes
+  const dummyClient = {
     auth: {
       getSession: () => {
         console.warn('⚠️ Using dummy Supabase client - not configured')
@@ -25,8 +26,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
       signOut: () => Promise.resolve({ error: null })
     }
   }
+  supabase = dummyClient
+  supabasePersistent = dummyClient
 } else {
-  console.log('✅ Creating Supabase client')
+  console.log('✅ Creating Supabase clients')
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
@@ -36,7 +39,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
       flowType: 'implicit'
     }
   })
-  console.log('✅ Supabase client created successfully (sem persistência)')
+  supabasePersistent = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      storage: window.localStorage,
+      flowType: 'implicit'
+    }
+  })
+  console.log('✅ Supabase clients created successfully')
 }
 
-export { supabase }
+export { supabase, supabasePersistent }

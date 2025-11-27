@@ -174,12 +174,11 @@ export const LeaderboardPanel = () => {
                 };
               }
 
-              // Calcular pontos baseado nos streaks
+              // Calcular pontos baseado no total de conclusões (não no streak atual)
               let totalPoints = 0;
               habits.forEach((habit: any) => {
-                const streak = calculateStreak(habit.completion_history || []);
-                const points = calculateHabitPoints(streak);
-                totalPoints += points;
+                const completions = habit.completion_history?.length || 0;
+                totalPoints += completions * 20; // 20 pontos por conclusão
               });
 
               console.log(`✅ ${profile.email}: ${totalPoints} pontos (${habits.length} hábitos)`);

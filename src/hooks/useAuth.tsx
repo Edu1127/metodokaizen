@@ -9,7 +9,7 @@ interface AuthContextType {
   profile: Profile | null
   loading: boolean
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error?: string }>
-  signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error?: string }>
   signOut: () => Promise<void>
 }
 
@@ -63,9 +63,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         })
         
         const result = await Promise.race([sessionPromise, timeoutPromise])
-        const { data: { session }, error: sessionError } = result
+        let { data: { session }, error: sessionError } = result
         
         console.log('🔐 AuthProvider: getSession retornou:', { session: !!session, error: sessionError })
+        
+        // If no session from supabase, check localStorage for persisted session
+        if (!session) {
+          const persistedSession = localStorage.getItem('supabase.auth.token')
+          if (persistedSession) {
+            try {
+              const parsedSession = JSON.parse(persistedSession)
+              // Validate the session is not expired
+              if (parsedSession.expires_at && parsedSession.expires_at * 1000 > Date.now()) {
+                console.log('🔐 AuthProvider: Sessão persistida encontrada, definindo')
+                await supabase.auth.setSession({
+                  access_token: parsedSession.access_token,
+                  refresh_token: parsedSession.refresh_token
+                })
+                // Get the session again after setting
+                const { data: newSessionData } = await supabase.auth.getSession()
+                session = newSessionData.session
+              } else {
+                console.log('🔐 AuthProvider: Sessão persistida expirada, removendo')
+                localStorage.removeItem('supabase.auth.token')
+              }
+            } catch (error) {
+              console.error('❌ AuthProvider: Erro ao carregar sessão persistida:', error)
+              localStorage.removeItem('supabase.auth.token')
+            }
+          }
+        }
         
         if (!mounted) {
           console.log('⚠️ AuthProvider: Componente desmontado, abortando')
@@ -176,9 +203,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
-      console.log('🔐 signIn: Tentando login para', email)
+      console.log('🔐 signIn: Tentando login para', email, 'rememberMe:', rememberMe)
       const result = await withTimeout(
         supabase.auth.signInWithPassword({
           email,
@@ -186,8 +213,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }),
         5000
       )
+      if (result.error) {
+        console.error('❌ signIn error:', result.error)
+        return { error: result.error.message }
+      }
       console.log('✅ signIn: Login bem sucedido', { user: result.data?.user?.email })
-      return { error: result.error?.message }
+      
+      // If remember me, persist the session in localStorage
+      if (rememberMe && result.data.session) {
+        localStorage.setItem('supabase.auth.token', JSON.stringify(result.data.session))
+      }
+      
+      return { error: undefined }
     } catch (err: any) {
       console.error('❌ signIn error:', err)
       return { error: err.message || 'Erro ao fazer login. Tente novamente.' }
@@ -198,6 +235,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       console.log('🚪 signOut: Fazendo logout')
       await withTimeout(supabase.auth.signOut(), 3000)
+      localStorage.removeItem('supabase.auth.token')
       console.log('✅ signOut: Logout concluído')
     } catch (err) {
       console.error('❌ signOut error:', err)
